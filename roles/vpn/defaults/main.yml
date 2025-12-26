@@ -24,6 +24,7 @@ vpn_domains_lists:
   - linkedin
   - netflix
   - openai
+  - roblox
   - telegram
   - windsurf
   - x
@@ -40,6 +41,7 @@ vpn_domains:
   linkedin: true
   netflix: true
   openai: true
+  roblox: true
   telegram: false
   windsurf: true
   x: true

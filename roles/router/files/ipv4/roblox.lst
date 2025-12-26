@@ -1,0 +1,15 @@
+nftset=/.roblox.com/4#inet#fw4#vpn_domains
+nftset=/roblox.com/4#inet#fw4#vpn_domains
+nftset=/.rbxcdn.com/4#inet#fw4#vpn_domains
+nftset=/rbxcdn.com/4#inet#fw4#vpn_domains
+nftset=/.robloxlabs.com/4#inet#fw4#vpn_domains
+nftset=/robloxlabs.com/4#inet#fw4#vpn_domains
+nftset=/.rbx.com/4#inet#fw4#vpn_domains
+nftset=/rbx.com/4#inet#fw4#vpn_domains
+nftset=/.robloxstatic.com/4#inet#fw4#vpn_domains
+nftset=/robloxstatic.com/4#inet#fw4#vpn_domains
+nftset=/.rbx-internal.com/4#inet#fw4#vpn_domains
+nftset=/rbx-internal.com/4#inet#fw4#vpn_domains
+nftset=/.simulpong.com/4#inet#fw4#vpn_domains
+nftset=/simulpong.com/4#inet#fw4#vpn_domains
+
