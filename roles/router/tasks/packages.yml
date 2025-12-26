@@ -8,24 +8,30 @@
   check_mode: false
 
 - name: Install required packages
-  ansible.builtin.command:
-    cmd: opkg install ipset curl ca-bundle ca-certificates
+  ansible.builtin.shell:
+    cmd: |
+      missing=""
+      for pkg in ipset curl ca-bundle ca-certificates; do
+        opkg list-installed "$pkg" >/dev/null 2>&1 || missing="$missing $pkg"
+      done
+      if [ -n "$missing" ]; then
+        opkg install $missing
+        echo "changed"
+      fi
   register: router_packages_install
-  changed_when: "'Installing' in router_packages_install.stdout"
-  failed_when:
-    - router_packages_install.rc != 0
-    - "'already installed' not in router_packages_install.stderr"
+  changed_when: "'changed' in router_packages_install.stdout"
   check_mode: false
 
 # Performance packages
 - name: Install irqbalance
-  ansible.builtin.command:
-    cmd: opkg install irqbalance
+  ansible.builtin.shell:
+    cmd: |
+      if ! opkg list-installed irqbalance >/dev/null 2>&1; then
+        opkg install irqbalance
+        echo "changed"
+      fi
   register: router_irqbalance_install
-  changed_when: "'Installing' in router_irqbalance_install.stdout"
-  failed_when:
-    - router_irqbalance_install.rc != 0
-    - "'already installed' not in router_irqbalance_install.stderr"
+  changed_when: "'changed' in router_irqbalance_install.stdout"
   check_mode: false
   when: router_irqbalance_enabled | default(true)
 

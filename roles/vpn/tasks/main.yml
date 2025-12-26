@@ -8,7 +8,7 @@
     vpn_servers: []
   when:
     - vpn_servers is not defined or vpn_servers | length == 0
-    - "'server' not in ansible_run_tags"
+    - "'vpn_servers' not in group_names"
   tags: [local]
 
 - name: Build vpn_servers from vault
@@ -27,7 +27,7 @@
     label: "{{ item.name }}"
   when:
     - vpn_servers | length < vault_vpn_servers | length
-    - "'server' not in ansible_run_tags"
+    - "'vpn_servers' not in group_names"
   tags: [local]
 
 - name: Validate VPN servers configured
@@ -35,23 +35,23 @@
     that:
       - vpn_servers | length > 0
     fail_msg: "VPN servers not configured. Check vault_vpn_servers and vpn_client_name."
-  when: "'server' not in ansible_run_tags"
+  when: "'vpn_servers' not in group_names"
   tags: [local]
 
 # Server tasks (VPS with x-ui)
 - name: Import security tasks
   ansible.builtin.include_tasks: server/security.yml
-  when: "'server' in ansible_run_tags"
+  when: "'vpn_servers' in group_names"
   tags: [server, security]
 
 - name: Import certificate tasks
   ansible.builtin.include_tasks: server/certificates.yml
-  when: "'server' in ansible_run_tags"
+  when: "'vpn_servers' in group_names"
   tags: [server, certificates]
 
 - name: Import x-ui tasks
   ansible.builtin.include_tasks: server/x-ui.yml
-  when: "'server' in ansible_run_tags"
+  when: "'vpn_servers' in group_names"
   tags: [server, x-ui]
 
 # Local tasks (macOS sing-box client)

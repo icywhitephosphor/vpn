@@ -5,9 +5,13 @@
   changed_when: false
 
 - name: Install or update sing-box
-  ansible.builtin.command: opkg install sing-box
+  ansible.builtin.shell: |
+    if ! opkg list-installed sing-box >/dev/null 2>&1; then
+      opkg install sing-box
+      echo "changed"
+    fi
   register: singbox_install
-  changed_when: "'Configuring sing-box' in singbox_install.stdout"
+  changed_when: "'changed' in singbox_install.stdout"
 
 - name: Create sing-box directory
   ansible.builtin.file:
@@ -52,5 +56,4 @@
   ansible.builtin.file:
     path: /etc/hotplug.d/iface/99-vpn-route
     state: absent
-
 

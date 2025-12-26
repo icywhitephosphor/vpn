@@ -7,7 +7,7 @@
 # Core Settings
 # -----------------------------------------------------------------------------
 
-vpn_ipv6_enabled: true
+vpn_ipv6_enabled: false
 vpn_log_level: info
 
 # -----------------------------------------------------------------------------
@@ -70,7 +70,7 @@ vpn_outbound_common:
     disable_sni: false
   utls:
     enabled: true
-    fingerprint: chrome
+    fingerprint: random
   reality:
     enabled: true
 

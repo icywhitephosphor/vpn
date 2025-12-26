@@ -44,7 +44,7 @@
       "type": "urltest",
       "outbounds": [
 {% for server in vpn_servers %}
-        "{{ server.name }}-v4"{% if server.server_ipv6 is defined %},
+        "{{ server.name }}-v4"{% if vpn_ipv6_enabled and server.server_ipv6 %},
         "{{ server.name }}-v6"{% endif %}{% if not loop.last %},{% endif %}
 
 {% endfor %}
@@ -77,7 +77,7 @@
 
         }
       }
-    }{% if server.server_ipv6 is defined %},
+    }{% if vpn_ipv6_enabled and server.server_ipv6 %},
     {
       "tag": "{{ server.name }}-v6",
       "type": "{{ vpn_outbound_common.type }}",

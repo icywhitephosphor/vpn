@@ -7,7 +7,7 @@
 # VPN Domain Configuration (Russia profile)
 # -----------------------------------------------------------------------------
 
-vpn_ipv6_enabled: true
+vpn_ipv6_enabled: false
 
 vpn_domains_lists:
   - antigravity
@@ -51,7 +51,7 @@ vpn_outbound_common:
     disable_sni: false
   utls:
     enabled: true
-    fingerprint: chrome
+    fingerprint: random
   reality:
     enabled: true
 

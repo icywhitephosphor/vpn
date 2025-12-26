@@ -8,40 +8,28 @@
     update_cache: true
   tags: [x-ui, x-ui-config]
 
-- name: Configure x-ui - set panel domain
+- name: Configure x-ui settings in sqlite
   ansible.builtin.shell:
     cmd: |
-      sqlite3 /etc/x-ui/x-ui.db "DELETE FROM settings WHERE key='webDomain';"
-      sqlite3 /etc/x-ui/x-ui.db "INSERT INTO settings (key, value) VALUES ('webDomain', '{{ vpn_server_domain }}');"
-  changed_when: true
-  notify: restart x-ui
-  when: vpn_server_domain is defined
-  tags: [x-ui, x-ui-config]
-
-- name: Configure x-ui - set certificate path
-  ansible.builtin.shell:
-    cmd: |
-      sqlite3 /etc/x-ui/x-ui.db "DELETE FROM settings WHERE key='webCertFile';"
-      sqlite3 /etc/x-ui/x-ui.db "INSERT INTO settings (key, value) VALUES ('webCertFile', '{{ vpn_server_xui_cert_path }}');"
-  changed_when: true
-  notify: restart x-ui
-  tags: [x-ui, x-ui-config]
-
-- name: Configure x-ui - set private key path
-  ansible.builtin.shell:
-    cmd: |
-      sqlite3 /etc/x-ui/x-ui.db "DELETE FROM settings WHERE key='webKeyFile';"
-      sqlite3 /etc/x-ui/x-ui.db "INSERT INTO settings (key, value) VALUES ('webKeyFile', '{{ vpn_server_xui_key_path }}');"
-  changed_when: true
-  notify: restart x-ui
-  tags: [x-ui, x-ui-config]
-
-- name: Configure x-ui - disable subscription
-  ansible.builtin.shell:
-    cmd: |
-      sqlite3 /etc/x-ui/x-ui.db "DELETE FROM settings WHERE key='subEnable';"
-      sqlite3 /etc/x-ui/x-ui.db "INSERT INTO settings (key, value) VALUES ('subEnable', 'false');"
-  changed_when: true
+      set -e
+      DB="/etc/x-ui/x-ui.db"
+      update_setting() {
+        local key="$1"
+        local value="$2"
+        local current
+        current="$(sqlite3 "$DB" "SELECT value FROM settings WHERE key='$key' LIMIT 1;" 2>/dev/null || true)"
+        if [ "$current" != "$value" ]; then
+          sqlite3 "$DB" "DELETE FROM settings WHERE key='$key';"
+          sqlite3 "$DB" "INSERT INTO settings (key, value) VALUES ('$key', '$value');"
+          echo "changed"
+        fi
+      }
+      {{ "update_setting 'webDomain' '" ~ vpn_server_domain ~ "'" if vpn_server_domain is defined else "" }}
+      update_setting 'webCertFile' '{{ vpn_server_xui_cert_path }}'
+      update_setting 'webKeyFile' '{{ vpn_server_xui_key_path }}'
+      update_setting 'subEnable' 'false'
+  register: xui_settings_update
+  changed_when: "'changed' in xui_settings_update.stdout"
   notify: restart x-ui
   tags: [x-ui, x-ui-config]
 
