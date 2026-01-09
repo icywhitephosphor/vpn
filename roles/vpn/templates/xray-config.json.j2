@@ -1,0 +1,92 @@
+{# {{ ansible_managed }} #}
+{# Xray-core configuration for macOS client #}
+{
+  "log": {
+    "loglevel": "{{ vpn_log_level }}"
+  },
+  "dns": {
+    "servers": [
+{% for dns in vpn_dns_servers %}
+{% if dns.type == 'udp' %}
+      "{{ dns.server }}"{% if not loop.last %},{% endif %}
+
+{% elif dns.type == 'https' %}
+      {
+        "address": "https://{{ dns.server }}/dns-query",
+        "domains": ["geosite:geolocation-!cn"]
+      }{% if not loop.last %},{% endif %}
+
+{% endif %}
+{% endfor %}
+    ]
+  },
+  "inbounds": [
+    {
+      "tag": "mixed-in",
+      "protocol": "socks",
+      "listen": "127.0.0.1",
+      "port": {{ vpn_local_proxy_port }},
+      "settings": {
+        "udp": true
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    {
+      "tag": "http-in",
+      "protocol": "http",
+      "listen": "127.0.0.1",
+      "port": {{ vpn_local_proxy_port }},
+      "settings": {}
+    }
+  ],
+  "outbounds": [
+{% for server in vpn_servers %}
+    {% set port_val = server.server_port | default(vpn_outbound_common.server_port) %}
+    {% set flow_val = server.flow if server.flow is defined else vpn_outbound_common.flow %}
+    {% set transport_val = server.transport if server.transport is defined else vpn_outbound_common.transport %}
+    {
+      "tag": "{{ server.name }}-v4",
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "{{ server.server_ipv4 }}",
+            "port": {{ port_val }},
+            "users": [
+              {
+                "id": "{{ server.uuid }}",
+                "encryption": "none"{% if flow_val %},
+                "flow": "{{ flow_val }}"{% endif %}
+
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "{{ transport_val.type | default('tcp') | replace('xhttp', 'xhttp') }}",
+        "security": "reality",
+        "realitySettings": {
+          "serverName": "{{ vpn_outbound_common.tls.server_name }}",
+          "fingerprint": "{{ vpn_outbound_common.utls.fingerprint }}",
+          "publicKey": "{{ server.public_key }}",
+          "shortId": "{{ server.short_id }}"
+        }{% if transport_val.type == 'xhttp' %},
+        "xhttpSettings": {
+          "path": "{{ transport_val.path | default('/') }}",
+          "mode": "{{ transport_val.mode | default('auto') }}"
+        }{% endif %}
+
+      }
+    }{% if not loop.last %},{% endif %}
+
+{% endfor %}
+  ],
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": []
+  }
+}

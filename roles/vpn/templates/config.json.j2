@@ -51,13 +51,18 @@
       "tolerance": 50
     },
 {% for server in vpn_servers %}
+    {% set port_val = server.server_port | default(vpn_outbound_common.server_port) %}
+    {% set flow_val = server.flow if server.flow is defined else vpn_outbound_common.flow %}
+    {% set transport_val = server.transport if server.transport is defined else vpn_outbound_common.transport %}
+    {% set packet_encoding_val = server.packet_encoding if server.packet_encoding is defined else vpn_outbound_common.packet_encoding %}
     {
       "tag": "{{ server.name }}-v4",
       "type": "{{ vpn_outbound_common.type }}",
       "server": "{{ server.server_ipv4 }}",
-      "server_port": {{ vpn_outbound_common.server_port }},
-      "uuid": "{{ server.uuid }}"{% if vpn_outbound_common.flow %},
-      "flow": "{{ vpn_outbound_common.flow }}"{% endif %},
+      "server_port": {{ port_val }},
+      "uuid": "{{ server.uuid }}"{% if flow_val %},
+      "flow": "{{ flow_val }}"{% endif %}{% if transport_val.type == 'tcp' and packet_encoding_val %},
+      "packet_encoding": "{{ packet_encoding_val }}"{% endif %},
       "tls": {
         "enabled": {{ vpn_outbound_common.tls.enabled | lower }},
         "insecure": {{ vpn_outbound_common.tls.insecure | lower }},
@@ -71,17 +76,24 @@
           "enabled": {{ vpn_outbound_common.reality.enabled | lower }}{% if vpn_outbound_common.reality.enabled %},
           "public_key": "{{ server.public_key }}",
           "short_id": "{{ server.short_id }}"{% endif %}
-
         }
-      }
+      }{% if transport_val.type != 'tcp' %},
+      "transport": {
+        "type": "{{ transport_val.type }}"{% if transport_val.type == 'xhttp' %},
+        "path": "{{ transport_val.path }}",
+        "mode": "{{ transport_val.mode }}"{% if transport_val.extra_headers | default({}) %},
+        "headers": {{ transport_val.extra_headers | to_json }}{% endif %}
+        {% endif %}
+      }{% endif %}
     }{% if vpn_ipv6_enabled and server.server_ipv6 %},
     {
       "tag": "{{ server.name }}-v6",
       "type": "{{ vpn_outbound_common.type }}",
       "server": "{{ server.server_ipv6 }}",
-      "server_port": {{ vpn_outbound_common.server_port }},
-      "uuid": "{{ server.uuid }}"{% if vpn_outbound_common.flow %},
-      "flow": "{{ vpn_outbound_common.flow }}"{% endif %},
+      "server_port": {{ port_val }},
+      "uuid": "{{ server.uuid }}"{% if flow_val %},
+      "flow": "{{ flow_val }}"{% endif %}{% if transport_val.type == 'tcp' and packet_encoding_val %},
+      "packet_encoding": "{{ packet_encoding_val }}"{% endif %},
       "tls": {
         "enabled": {{ vpn_outbound_common.tls.enabled | lower }},
         "insecure": {{ vpn_outbound_common.tls.insecure | lower }},
@@ -95,9 +107,15 @@
           "enabled": {{ vpn_outbound_common.reality.enabled | lower }}{% if vpn_outbound_common.reality.enabled %},
           "public_key": "{{ server.public_key }}",
           "short_id": "{{ server.short_id }}"{% endif %}
-
         }
-      }
+      }{% if transport_val.type != 'tcp' %},
+      "transport": {
+        "type": "{{ transport_val.type }}"{% if transport_val.type == 'xhttp' %},
+        "path": "{{ transport_val.path }}",
+        "mode": "{{ transport_val.mode }}"{% if transport_val.extra_headers | default({}) %},
+        "headers": {{ transport_val.extra_headers | to_json }}{% endif %}
+        {% endif %}
+      }{% endif %}
     }{% endif %}{% if not loop.last %},{% endif %}
 
 {% endfor %}

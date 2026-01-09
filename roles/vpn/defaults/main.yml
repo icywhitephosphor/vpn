@@ -15,6 +15,7 @@ vpn_log_level: info
 # -----------------------------------------------------------------------------
 
 vpn_domains_lists:
+  - additional
   - antigravity
   - claude
   - copilot
@@ -31,6 +32,7 @@ vpn_domains_lists:
 vpn_services_exclude: []
 
 vpn_domains:
+  additional: true
   antigravity: true
   claude: true
   copilot: true
@@ -63,6 +65,13 @@ vpn_outbound_common:
   type: vless
   server_port: 8443
   flow: xtls-rprx-vision
+  packet_encoding: xudp
+  transport:
+    type: tcp # tcp, xhttp
+    # XHTTP settings
+    path: "/"
+    mode: auto
+    extra_headers: {}
   tls:
     enabled: true
     insecure: false
@@ -92,7 +101,9 @@ vpn_dns_servers:
 # Local (Mac) Specific Settings
 # -----------------------------------------------------------------------------
 
-vpn_local_config_dir: "{{ ansible_facts['env']['HOME'] | default('/tmp') }}/.config/sing-box"
+vpn_local_client: sing-box # sing-box, xray
+vpn_local_config_dir: "{{ ansible_facts['env']['HOME'] | default('/tmp') }}/.config/vpn"
+vpn_local_config_file: "{{ vpn_local_config_dir }}/{{ vpn_local_client }}.json"
 vpn_local_proxy_port: 2080
 vpn_local_pac_enabled: true
 vpn_local_pac_validate_certs: false

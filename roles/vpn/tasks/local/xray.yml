@@ -1,0 +1,33 @@
+---
+# xray client configuration for macOS
+
+- name: Generate xray configuration
+  ansible.builtin.template:
+    src: xray-config.json.j2
+    dest: "{{ vpn_local_config_file }}"
+    mode: "0600"
+    backup: true
+  notify: restart vpn client
+
+- name: Install xray via Homebrew
+  community.general.homebrew:
+    name: xray
+    state: present
+
+- name: Validate xray configuration
+  ansible.builtin.command:
+    cmd: /opt/homebrew/bin/xray run -test -c "{{ vpn_local_config_file }}"
+  changed_when: false
+
+- name: Create run script for xray
+  ansible.builtin.template:
+    src: run-xray.sh.j2
+    dest: "{{ vpn_local_config_dir }}/run.sh"
+    mode: "0755"
+  notify: restart vpn client
+
+- name: Ensure xray is running
+  ansible.builtin.command:
+    cmd: "{{ vpn_local_config_dir }}/run.sh start"
+  register: xray_start
+  changed_when: "'started' in xray_start.stdout"

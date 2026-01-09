@@ -1,8 +1,19 @@
 #!/bin/sh
 # {{ ansible_managed }}
+# Hotplug script for VPN routing via sing-box TUN interface
 
 [ "$ACTION" = "add" ] && [ "$INTERFACE" = "tun0" ] && {
-logger -t vpn-route "Restoring VPN route for tun0"
-ip route del default table vpn metric 10 2>/dev/null
-ip route add default dev tun0 table vpn metric 10
+    logger -t vpn-route "Setting up VPN route for tun0"
+    
+    # Remove old route and add new one
+    ip route del default table vpn 2>/dev/null
+    ip route add default dev tun0 table vpn metric 10
+    
+    # Ensure routing rule exists
+    if ! ip rule show | grep -q "fwmark 0x1.*lookup vpn"; then
+        ip rule add fwmark 0x1 lookup vpn prio 100
+        logger -t vpn-route "Added ip rule for fwmark 0x1 -> table vpn"
+    fi
+    
+    logger -t vpn-route "VPN routing configured successfully"
 }

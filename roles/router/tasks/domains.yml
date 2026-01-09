@@ -38,7 +38,7 @@
   loop_control:
     label: "{{ item }}"
   when:
-    - vpn_ipv6_enabled | default(false)
+    - vpn_ipv6_enabled
     - item not in vpn_services_exclude
     - vpn_domains[item] | default(false)
   notify: Rebuild domains
@@ -62,7 +62,7 @@
   loop_control:
     label: "{{ item }}"
   when:
-    - not (vpn_ipv6_enabled | default(false))
+    - not vpn_ipv6_enabled
       or item in vpn_services_exclude
       or not (vpn_domains[item] | default(false))
   notify: Rebuild domains

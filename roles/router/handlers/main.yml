@@ -19,6 +19,12 @@
   changed_when: false
   check_mode: false
 
+- name: Restart xray
+  ansible.builtin.command:
+    cmd: /etc/init.d/xray restart
+  changed_when: false
+  check_mode: false
+
 - name: Rebuild domains
   ansible.builtin.command:
     cmd: /etc/init.d/getdomains start

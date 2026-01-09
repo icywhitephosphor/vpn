@@ -1,0 +1,33 @@
+# {{ ansible_managed }}
+# NFTables rules for Xray TPROXY transparent proxy (IPv4)
+
+table ip xray {
+chain prerouting {
+type filter hook prerouting priority mangle; policy accept;
+
+# Skip xray's own outbound traffic (mark 255)
+meta mark 0xff return
+
+# Skip local traffic
+ip daddr 127.0.0.0/8 return
+ip daddr 10.0.0.0/8 return
+ip daddr 172.16.0.0/12 return
+ip daddr 192.168.0.0/16 return
+
+# Skip VPN server IPs
+{% for server in vpn_servers %}
+ip daddr {{ server.server_ipv4 }} return
+{% endfor %}
+
+# Redirect marked traffic to Xray TPROXY
+meta mark 0x1 meta l4proto tcp tproxy ip to 127.0.0.1:12345 accept
+meta mark 0x1 meta l4proto udp tproxy ip to 127.0.0.1:12345 accept
+}
+
+chain output {
+type route hook output priority mangle; policy accept;
+
+# Mark packets from xray to be routed correctly
+meta mark 0x1 accept
+}
+}

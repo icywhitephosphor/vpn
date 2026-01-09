@@ -12,3 +12,16 @@
     name: sshd
     state: reloaded
   listen: reload sshd
+
+# Local client handlers (macOS)
+- name: Restart xray
+  ansible.builtin.command:
+    cmd: "{{ vpn_local_config_dir }}/run.sh restart"
+  listen: restart vpn client
+  when: vpn_local_client == 'xray'
+
+- name: Restart sing-box
+  ansible.builtin.command:
+    cmd: "{{ vpn_local_config_dir }}/run.sh restart"
+  listen: restart vpn client
+  when: vpn_local_client == 'sing-box'

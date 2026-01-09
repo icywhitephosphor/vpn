@@ -7,5 +7,5 @@
     owner: root
     group: root
     mode: '0644'
-  when: router_sysctl_enabled | default(true)
+  when: router_sysctl_enabled
   notify: Apply sysctl settings

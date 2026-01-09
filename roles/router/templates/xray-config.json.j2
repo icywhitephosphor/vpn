@@ -1,0 +1,215 @@
+{#- Xray-core configuration for OpenWrt router -#}
+{%- set dns_servers_list = [] -%}
+{%- for dns in router_singbox_dns_servers -%}
+  {%- if dns.address.startswith('tls://') -%}
+    {%- set _ = dns_servers_list.append(dns.address | replace('tls://', '')) -%}
+  {%- else -%}
+    {%- set _ = dns_servers_list.append(dns.address) -%}
+  {%- endif -%}
+{%- endfor -%}
+{#- Build VPN outbounds first -#}
+{%- set vpn_outbounds = [] -%}
+{%- set outbounds_tags = [] -%}
+{%- for server in vpn_servers -%}
+  {%- set port_val = server.server_port if server.server_port is defined else vpn_outbound_common.server_port -%}
+  {%- set flow_val = server.flow if server.flow is defined else vpn_outbound_common.flow -%}
+  {%- set transport_val = server.transport if server.transport is defined else vpn_outbound_common.transport -%}
+  {%- set transport_type = transport_val.type -%}
+  {%- set user_obj = {'id': server.uuid, 'encryption': 'none'} -%}
+  {#- flow is incompatible with xhttp transport -#}
+  {%- if flow_val and transport_type != 'xhttp' -%}
+    {%- set user_obj = user_obj | combine({'flow': flow_val}) -%}
+  {%- endif -%}
+  {%- set stream_settings = {
+    'network': transport_type,
+    'security': 'reality',
+    'realitySettings': {
+      'serverName': vpn_outbound_common.tls.server_name,
+      'fingerprint': vpn_outbound_common.utls.fingerprint,
+      'publicKey': server.public_key,
+      'shortId': server.short_id
+    },
+    'sockopt': {
+      'mark': 255,
+      'tcpFastOpen': true,
+      'tcpKeepAliveIdle': 60
+    }
+  } -%}
+  {%- if transport_type == 'xhttp' -%}
+    {%- set xhttp_settings = {
+      'path': transport_val.path,
+      'mode': transport_val.mode
+    } -%}
+    {%- if vpn_outbound_common.tls.server_name -%}
+      {%- set xhttp_settings = xhttp_settings | combine({'host': vpn_outbound_common.tls.server_name}) -%}
+    {%- endif -%}
+    {%- set stream_settings = stream_settings | combine({'xhttpSettings': xhttp_settings}) -%}
+  {%- endif -%}
+  {%- set server_outbound = {
+    'tag': server.name ~ '-v4',
+    'protocol': 'vless',
+    'settings': {
+      'vnext': [{
+        'address': server.server_ipv4,
+        'port': port_val,
+        'users': [user_obj]
+      }]
+    },
+    'streamSettings': stream_settings
+  } -%}
+  {%- set _ = vpn_outbounds.append(server_outbound) -%}
+  {%- set _ = outbounds_tags.append(server_outbound.tag) -%}
+  {%- if vpn_ipv6_enabled and server.server_ipv6 -%}
+    {%- set server_outbound_v6 = server_outbound | combine({
+      'tag': server.name ~ '-v6',
+      'settings': {
+        'vnext': [{
+          'address': server.server_ipv6,
+          'port': port_val,
+          'users': [user_obj]
+        }]
+      }
+    }) -%}
+    {%- set _ = vpn_outbounds.append(server_outbound_v6) -%}
+    {%- set _ = outbounds_tags.append(server_outbound_v6.tag) -%}
+  {%- endif -%}
+{%- endfor -%}
+{#- Build complete outbounds list: VPN servers + service outbounds -#}
+{%- set outbounds_list = vpn_outbounds -%}
+{%- set _ = outbounds_list.append({
+  'tag': 'dns-out',
+  'protocol': 'dns',
+  'settings': {}
+}) -%}
+{%- set _ = outbounds_list.append({
+  'tag': 'direct',
+  'protocol': 'freedom',
+  'settings': {}
+}) -%}
+{%- set _ = outbounds_list.append({
+  'tag': 'block',
+  'protocol': 'blackhole',
+  'settings': {}
+}) -%}
+{#- Inbounds -#}
+{%- if _router_vpn_client != 'hybrid' -%}
+{%- set inbounds_list = [{
+  'tag': 'tun-in',
+  'protocol': 'dokodemo-door',
+  'listen': '127.0.0.1',
+  'port': 12345,
+  'settings': {
+    'network': 'tcp,udp',
+    'followRedirect': true
+  },
+  'sniffing': {
+    'enabled': true,
+    'destOverride': ['http', 'tls']
+  }
+}] -%}
+{%- else -%}
+{#- Hybrid mode: No TPROXY inbound needed -#}
+{%- set inbounds_list = [] -%}
+{%- endif -%}
+
+{#- Always expose local socks for sing-box chain - no sniffing needed as sing-box handles routing -#}
+{%- set _ = inbounds_list.append({
+  'tag': 'socks-chain',
+  'protocol': 'socks',
+  'listen': '127.0.0.1',
+  'port': router_xray_chain_port,
+  'settings': {
+    'udp': true
+  },
+  'sniffing': {
+    'enabled': false
+  }
+}) -%}
+
+{%- if router_proxy_enabled -%}
+  {%- set _ = inbounds_list.append({
+    'tag': 'socks-in',
+    'protocol': 'socks',
+    'listen': '0.0.0.0',
+    'port': router_proxy_port,
+    'settings': {
+      'udp': true
+    },
+    'sniffing': {
+      'enabled': true,
+      'destOverride': ['http', 'tls']
+    }
+  }) -%}
+  {%- set _ = inbounds_list.append({
+    'tag': 'http-in',
+    'protocol': 'http',
+    'listen': '0.0.0.0',
+    'port': router_proxy_port + 1,
+    'settings': {}
+  }) -%}
+{%- endif -%}
+{#- Build VPN server IPs list for routing bypass -#}
+{%- set vpn_server_ips = [] -%}
+{%- for server in vpn_servers -%}
+  {%- set _ = vpn_server_ips.append(server.server_ipv4) -%}
+  {%- if vpn_ipv6_enabled and server.server_ipv6 -%}
+    {%- set _ = vpn_server_ips.append(server.server_ipv6) -%}
+  {%- endif -%}
+{%- endfor -%}
+{#- Build config -#}
+{%- set config = {
+  'log': {'loglevel': router_xray_log_level},
+  'dns': {
+    'servers': dns_servers_list,
+    'queryStrategy': 'UseIPv4' if not vpn_ipv6_enabled else 'UseIP'
+  },
+  'policy': {
+    'levels': {
+      '0': {
+        'bufferSize': 512,
+        'connIdle': 300,
+        'uplinkOnly': 1,
+        'downlinkOnly': 1
+      }
+    }
+  },
+  'inbounds': inbounds_list,
+  'outbounds': outbounds_list,
+  'burstObservatory': {
+    'subjectSelector': outbounds_tags,
+    'pingConfig': {
+      'destination': 'https://connectivitycheck.gstatic.com/generate_204',
+      'interval': '3m',
+      'sampling': 3,
+      'timeout': '10s'
+    }
+  },
+  'routing': {
+    'domainStrategy': 'AsIs',
+    'balancers': [{
+      'tag': 'vpn-balancer',
+      'selector': outbounds_tags,
+      'strategy': {
+        'type': 'leastPing'
+      }
+    }],
+    'rules': [
+      {
+        'type': 'field',
+        'ip': vpn_server_ips,
+        'outboundTag': 'direct'
+      },
+      {
+        'type': 'field',
+        'domain': ['domain:' + vpn_outbound_common.tls.server_name],
+        'outboundTag': 'direct'
+      },
+      {
+        'type': 'field',
+        'inboundTag': ['tun-in', 'socks-in', 'http-in', 'socks-chain'],
+        'balancerTag': 'vpn-balancer'
+      }
+    ]
+  }
+} -%}
+{{ config | to_nice_json }}

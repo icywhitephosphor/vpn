@@ -20,7 +20,10 @@
         'server_ipv6': item.server_ipv6 | default(''),
         'public_key': item.public_key,
         'short_id': item.short_id,
-        'uuid': item.clients[vpn_client_name]
+        'uuid': item.clients[vpn_client_name],
+        'server_port': item.server_port | default(omit),
+        'flow': item.flow | default(omit),
+        'transport': item.transport | default(omit)
       }] }}
   loop: "{{ vault_vpn_servers }}"
   loop_control:

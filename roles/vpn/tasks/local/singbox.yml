@@ -1,0 +1,33 @@
+---
+# sing-box client configuration for macOS
+
+- name: Generate sing-box configuration
+  ansible.builtin.template:
+    src: config.json.j2
+    dest: "{{ vpn_local_config_file }}"
+    mode: "0600"
+    backup: true
+  notify: restart vpn client
+
+- name: Install sing-box via Homebrew
+  community.general.homebrew:
+    name: sing-box
+    state: present
+
+- name: Validate sing-box configuration
+  ansible.builtin.command:
+    cmd: /opt/homebrew/bin/sing-box check -c "{{ vpn_local_config_file }}"
+  changed_when: false
+
+- name: Create run script for sing-box
+  ansible.builtin.template:
+    src: run-singbox.sh.j2
+    dest: "{{ vpn_local_config_dir }}/run.sh"
+    mode: "0755"
+  notify: restart vpn client
+
+- name: Ensure sing-box is running
+  ansible.builtin.command:
+    cmd: "{{ vpn_local_config_dir }}/run.sh start"
+  register: singbox_start
+  changed_when: "'started' in singbox_start.stdout"

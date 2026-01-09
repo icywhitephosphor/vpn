@@ -2,20 +2,38 @@
 # {{ ansible_managed }}
 
 START=99
+STOP=10
 
 start () {
+    # Ждём пока firewall создаст nftables set vpn_domains
+    local retry=0
+    while [ $retry -lt 10 ]; do
+        if nft list set inet fw4 vpn_domains >/dev/null 2>&1; then
+            break
+        fi
+        logger -t getdomains "Waiting for nft set vpn_domains... ($retry)"
+        sleep 1
+        retry=$((retry + 1))
+    done
+    
+    # Если set не создался - создаём вручную
+    if ! nft list set inet fw4 vpn_domains >/dev/null 2>&1; then
+        logger -t getdomains "Creating nft set vpn_domains manually"
+        nft add set inet fw4 vpn_domains "{ type ipv4_addr; flags interval; }" 2>/dev/null || true
+    fi
+
     # Всё храним в /etc/dnsmasq.d/ (persistent storage)
     DOMAINS="https://raw.githubusercontent.com/itdoginfo/allow-domains/main/Russia/inside-dnsmasq-nfset.lst"
-    
     
     # Пытаемся скачать список (максимум 3 попытки)
     for i in 1 2 3; do
         if curl -m 3 -fsI github.com >/dev/null 2>&1; then
             if curl -f "$DOMAINS" --output /etc/dnsmasq.d/domains.lst; then
+                logger -t getdomains "Downloaded domains list successfully"
                 break
             fi
         fi
-        echo "GitHub is not available or download failed. Attempt $i of 3."
+        logger -t getdomains "GitHub is not available or download failed. Attempt $i of 3."
         sleep 2
     done
     
@@ -34,7 +52,7 @@ start () {
         # Пропускаем сам файл domains.lst чтобы не дублировать
         [ "$file" = "/etc/dnsmasq.d/domains.lst" ] && continue
         # Пропускаем IPv6 списки, если IPv6 отключен
-        {% if not vpn_ipv6_enabled | default(false) %}
+        {% if not vpn_ipv6_enabled %}
         case "$file" in *-ipv6.lst) continue ;; esac
         {% endif %}
         [ -f "$file" ] && cat "$file" >> /etc/dnsmasq.d/domains.lst
@@ -46,6 +64,8 @@ start () {
     # Удаляем комментарии и пустые строки после сортировки
     sed -i '/^#/d' /etc/dnsmasq.d/domains.lst
     sed -i '/^$/d' /etc/dnsmasq.d/domains.lst
+    
+    logger -t getdomains "Loaded $(wc -l < /etc/dnsmasq.d/domains.lst) domain rules"
     
     # Перезапускаем dnsmasq
     /etc/init.d/dnsmasq restart

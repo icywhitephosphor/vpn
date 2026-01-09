@@ -1,0 +1,44 @@
+#!/bin/bash
+# {{ ansible_managed }}
+# Xray VPN client control script
+
+CONFIG="{{ vpn_local_config_file }}"
+LOG="{{ vpn_local_config_dir }}/xray.log"
+PIDFILE="{{ vpn_local_config_dir }}/xray.pid"
+
+start() {
+  if pgrep -f "xray run -c $CONFIG" > /dev/null 2>&1; then
+    echo "Xray already running (PID: $(pgrep -f "xray run -c $CONFIG"))"
+    return 0
+  fi
+  nohup /opt/homebrew/bin/xray run -c "$CONFIG" > "$LOG" 2>&1 &
+  echo $! > "$PIDFILE"
+  sleep 0.5
+  if pgrep -f "xray run -c $CONFIG" > /dev/null 2>&1; then
+    echo "Xray started (PID: $(cat "$PIDFILE"))"
+  else
+    echo "Failed to start xray, check $LOG"
+    return 1
+  fi
+}
+
+stop() {
+  pkill -f "xray run -c $CONFIG" 2>/dev/null && echo "Xray stopped" || echo "Xray not running"
+  rm -f "$PIDFILE"
+}
+
+status() {
+  if pgrep -f "xray run -c $CONFIG" > /dev/null 2>&1; then
+    echo "Xray running (PID: $(pgrep -f "xray run -c $CONFIG"))"
+  else
+    echo "Xray not running"
+  fi
+}
+
+case "${1:-start}" in
+  start)   start ;;
+  stop)    stop ;;
+  restart) stop; sleep 1; start ;;
+  status)  status ;;
+  *)       echo "Usage: $0 {start|stop|restart|status}"; exit 1 ;;
+esac

@@ -149,7 +149,10 @@ config forwarding
 
 config ipset
     option name 'vpn_domains'
+    option family 'ipv4'
     option match 'dst_net'
+    option storage 'hash'
+    option maxelem '65536'
 
 {% if vpn_ipv6_enabled %}
 config rule

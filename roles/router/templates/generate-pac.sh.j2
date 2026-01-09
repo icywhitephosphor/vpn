@@ -5,8 +5,8 @@
 
 PAC_FILE="/www/proxy.pac"
 DOMAINS_FILE="/etc/dnsmasq.d/domains.lst"
-ROUTER_IP="{{ router_network_lan_ipaddr | default('192.168.1.1') }}"
-PROXY_PORT="{{ router_proxy_port | default(2080) }}"
+ROUTER_IP="{{ router_network_lan_ipaddr }}"
+PROXY_PORT="{{ router_proxy_port }}"
 
 # Создаём /www если нет
 mkdir -p /www

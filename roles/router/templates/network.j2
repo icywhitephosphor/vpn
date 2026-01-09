@@ -61,7 +61,8 @@ config interface 'wan6'
 {% endif %}
 
 {% if vpn_enabled %}
-# VPN routing table with fallback to WAN
+{% if _router_vpn_client in ['sing-box', 'hybrid'] %}
+# VPN routing table for sing-box tun interface (sing-box or hybrid)
 config route 'vpn_fallback'
 	option interface 'wan'
 	option target '0.0.0.0/0'
@@ -73,4 +74,8 @@ config rule
 	option mark '0x1/0x1'
 	option priority '100'
 	option lookup 'vpn'
+{% else %}
+# For xray: TPROXY routing is configured via ip rule/route commands
+# No static routing rules needed here - handled by xray.yml tasks
+{% endif %}
 {% endif %}

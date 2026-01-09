@@ -57,3 +57,63 @@
     path: /etc/hotplug.d/iface/99-vpn-route
     state: absent
 
+- name: Stop and disable xray if switching to sing-box
+  ansible.builtin.shell: |
+    if [ -f /etc/init.d/xray ]; then
+      /etc/init.d/xray stop 2>/dev/null || true
+      /etc/init.d/xray disable 2>/dev/null || true
+    fi
+  when: _router_vpn_client != 'hybrid'
+  changed_when: false
+
+# Clean up xray artifacts
+- name: Remove xray TPROXY hotplug script
+  ansible.builtin.file:
+    path: /etc/hotplug.d/iface/99-xray-tproxy
+    state: absent
+
+- name: Remove xray nft table
+  ansible.builtin.shell: |
+    nft delete table ip xray 2>/dev/null || true
+  changed_when: false
+
+- name: Remove xray TPROXY routing rules
+  ansible.builtin.shell: |
+    ip rule del fwmark 0x1 lookup 100 2>/dev/null || true
+    ip route flush table 100 2>/dev/null || true
+  changed_when: false
+
+- name: Ensure sing-box is running (creates tun0)
+  ansible.builtin.shell: |
+    /etc/init.d/sing-box restart
+    # Wait for tun0 to appear
+    retry=0
+    while [ $retry -lt 15 ]; do
+      if ip link show tun0 >/dev/null 2>&1; then
+        echo "tun0 is up"
+        break
+      fi
+      sleep 1
+      retry=$((retry + 1))
+    done
+  changed_when: false
+
+- name: Setup sing-box vpn routing table
+  ansible.builtin.shell: |
+    # Ensure tun0 exists
+    if ! ip link show tun0 >/dev/null 2>&1; then
+      echo "Error: tun0 does not exist, sing-box might not be running"
+      exit 1
+    fi
+    # Ensure local route exists for marked VPN traffic
+    ip route del default table vpn 2>/dev/null || true
+    ip route add default dev tun0 table vpn metric 10
+    # Add vpn routing table rule
+    ip rule show | grep -q "fwmark 0x1.*lookup vpn" || ip rule add fwmark 0x1 lookup vpn prio 100
+  changed_when: false
+
+# Ensure firewall is reloaded to pick up fw4 changes
+- name: Reload firewall after sing-box setup
+  ansible.builtin.command:
+    cmd: /etc/init.d/firewall reload
+  changed_when: false

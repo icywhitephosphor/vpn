@@ -16,12 +16,54 @@
         'server_ipv6': item.server_ipv6 | default(''),
         'public_key': item.public_key,
         'short_id': item.short_id,
-        'uuid': item.clients[vpn_client_name]
+        'uuid': item.clients[vpn_client_name],
+        'server_port': item.server_port | default(omit),
+        'flow': item.flow | default(omit),
+        'transport': item.transport | default(omit)
       }] }}
-  loop: "{{ vault_vpn_servers }}"
+  loop: >-
+    {{ vault_router_vpn_servers 
+       if (vpn_client_name == 'router' and vault_router_vpn_servers is defined and vault_router_vpn_servers | length > 0)
+       else vault_vpn_servers }}
   loop_control:
     label: "{{ item.name }}"
-  when: vpn_servers | length < vault_vpn_servers | length
+  when: >-
+    vpn_servers | length < 
+    (vault_router_vpn_servers | length 
+     if (vpn_client_name == 'router' and vault_router_vpn_servers is defined and vault_router_vpn_servers | length > 0)
+     else vault_vpn_servers | length)
+  tags: [always]
+
+# Determine effective VPN client based on transport type (must be before network.yml)
+- name: Detect xhttp transport in servers
+  ansible.builtin.set_fact:
+    _has_xhttp_transport: >-
+      {{ vpn_servers | selectattr('transport', 'defined') 
+         | selectattr('transport.type', 'equalto', 'xhttp') | list | length > 0
+         or vpn_outbound_common.transport.type == 'xhttp' }}
+  tags: [always]
+
+- name: Set effective VPN client
+  ansible.builtin.set_fact:
+    _router_vpn_client: >-
+      {%- if router_vpn_client == 'auto' -%}
+        {{ 'hybrid' if _has_xhttp_transport else 'sing-box' }}
+      {%- else -%}
+        {{ router_vpn_client }}
+      {%- endif -%}
+  tags: [always]
+
+- name: Warn if xhttp with sing-box (non-hybrid)
+  ansible.builtin.fail:
+    msg: "xhttp transport requires xray client (or hybrid mode). sing-box doesn't support xhttp."
+  when:
+    - _router_vpn_client == 'sing-box'
+    - _has_xhttp_transport
+  tags: [always]
+
+- name: Show selected VPN client
+  ansible.builtin.debug:
+    msg: "VPN client: {{ _router_vpn_client }} (xhttp: {{ _has_xhttp_transport }})"
   tags: [always]
 
 - name: Import packages installation tasks
@@ -45,8 +87,20 @@
   tags: [pac]
 
 - name: Import sing-box configuration tasks
-  ansible.builtin.import_tasks: singbox.yml
-  tags: [singbox]
+  ansible.builtin.include_tasks:
+    file: singbox.yml
+    apply:
+      tags: [singbox, vpn]
+  when: _router_vpn_client in ['sing-box', 'hybrid']
+  tags: [singbox, vpn]
+
+- name: Import xray configuration tasks
+  ansible.builtin.include_tasks:
+    file: xray.yml
+    apply:
+      tags: [xray, vpn]
+  when: _router_vpn_client in ['xray', 'hybrid']
+  tags: [xray, vpn]
 
 - name: Import WiFi configuration tasks
   ansible.builtin.import_tasks: wifi.yml
@@ -55,3 +109,30 @@
 - name: Import cleanup tasks
   ansible.builtin.import_tasks: cleanup.yml
   tags: [cleanup]
+
+# Final verification
+- name: Verify VPN setup
+  ansible.builtin.shell: |
+    echo "=== Services Status ==="
+    echo "sing-box: $(service sing-box status 2>&1)"
+    echo "xray: $(service xray status 2>&1)"
+    echo ""
+    echo "=== TUN0 Interface ==="
+    ip addr show tun0 2>&1 || echo "tun0 NOT FOUND"
+    echo ""
+    echo "=== NFT Set vpn_domains ==="
+    nft list set inet fw4 vpn_domains 2>&1 | head -5
+    echo ""
+    echo "=== IP Rules ==="
+    ip rule show | grep -E "vpn|0x1" || echo "No VPN rules found"
+    echo ""
+    echo "=== VPN Routing Table ==="
+    ip route show table vpn 2>&1 || echo "VPN table not found"
+  register: _vpn_verify
+  changed_when: false
+  tags: [always]
+
+- name: Show VPN setup status
+  ansible.builtin.debug:
+    msg: "{{ _vpn_verify.stdout_lines }}"
+  tags: [always]

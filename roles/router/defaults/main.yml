@@ -10,6 +10,7 @@
 vpn_ipv6_enabled: false
 
 vpn_domains_lists:
+  - additional
   - antigravity
   - claude
   - copilot
@@ -26,6 +27,7 @@ vpn_domains_lists:
 vpn_services_exclude: []
 
 vpn_domains:
+  additional: false
   antigravity: true
   claude: true
   copilot: true
@@ -44,6 +46,13 @@ vpn_outbound_common:
   type: vless
   server_port: 8443
   flow: xtls-rprx-vision
+  # Transport: tcp, xhttp (xray only), ws, grpc
+  transport:
+    type: tcp
+    path: /
+    mode: auto
+    extra_headers: {}
+  packet_encoding: xudp
   tls:
     enabled: true
     insecure: false
@@ -70,15 +79,18 @@ router_network_wan_mac: ""
 
 router_vpn_enabled: true
 
+# VPN client: sing-box or xray
+# Note: xhttp transport requires xray (sing-box doesn't support it)
+# If set to 'auto', will use xray when transport=xhttp, otherwise sing-box
+router_vpn_client: auto
+
 # -----------------------------------------------------------------------------
 # Proxy Configuration
 # -----------------------------------------------------------------------------
 
 router_proxy_enabled: true
 router_proxy_port: 2080
-
-# 2G Network without VPN (not implemented)
-router_2g_without_vpn: false
+router_xray_chain_port: 2081
 
 # -----------------------------------------------------------------------------
 # Performance
@@ -98,7 +110,11 @@ router_sysctl_tcp_wmem: "4096 1048576 16777216"
 router_sysctl_netdev_max_backlog: 5000
 router_sysctl_mtu_probing: 1
 
-router_irqbalance_enabled: true
+# -----------------------------------------------------------------------------
+# xray Configuration
+# -----------------------------------------------------------------------------
+
+router_xray_log_level: error
 
 # -----------------------------------------------------------------------------
 # sing-box Configuration

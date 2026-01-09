@@ -1,0 +1,44 @@
+#!/bin/bash
+# {{ ansible_managed }}
+# sing-box VPN client control script
+
+CONFIG="{{ vpn_local_config_file }}"
+LOG="{{ vpn_local_config_dir }}/sing-box.log"
+PIDFILE="{{ vpn_local_config_dir }}/sing-box.pid"
+
+start() {
+  if pgrep -f "sing-box run -c $CONFIG" > /dev/null 2>&1; then
+    echo "sing-box already running (PID: $(pgrep -f "sing-box run -c $CONFIG"))"
+    return 0
+  fi
+  nohup /opt/homebrew/bin/sing-box run -c "$CONFIG" > "$LOG" 2>&1 &
+  echo $! > "$PIDFILE"
+  sleep 0.5
+  if pgrep -f "sing-box run -c $CONFIG" > /dev/null 2>&1; then
+    echo "sing-box started (PID: $(cat "$PIDFILE"))"
+  else
+    echo "Failed to start sing-box, check $LOG"
+    return 1
+  fi
+}
+
+stop() {
+  pkill -f "sing-box run -c $CONFIG" 2>/dev/null && echo "sing-box stopped" || echo "sing-box not running"
+  rm -f "$PIDFILE"
+}
+
+status() {
+  if pgrep -f "sing-box run -c $CONFIG" > /dev/null 2>&1; then
+    echo "sing-box running (PID: $(pgrep -f "sing-box run -c $CONFIG"))"
+  else
+    echo "sing-box not running"
+  fi
+}
+
+case "${1:-start}" in
+  start)   start ;;
+  stop)    stop ;;
+  restart) stop; sleep 1; start ;;
+  status)  status ;;
+  *)       echo "Usage: $0 {start|stop|restart|status}"; exit 1 ;;
+esac
