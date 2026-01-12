@@ -1,5 +1,5 @@
 {# {{ ansible_managed }} #}
-{# Xray-core configuration for macOS client #}
+{# Xray-core configuration for macOS client with domain-based routing #}
 {
   "log": {
     "loglevel": "{{ vpn_log_level }}"
@@ -22,7 +22,7 @@
   },
   "inbounds": [
     {
-      "tag": "mixed-in",
+      "tag": "socks-in",
       "protocol": "socks",
       "listen": "127.0.0.1",
       "port": {{ vpn_local_proxy_port }},
@@ -38,8 +38,12 @@
       "tag": "http-in",
       "protocol": "http",
       "listen": "127.0.0.1",
-      "port": {{ vpn_local_proxy_port }},
-      "settings": {}
+      "port": {{ vpn_local_proxy_port + 1 }},
+      "settings": {},
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
     }
   ],
   "outbounds": [
@@ -81,12 +85,54 @@
         }{% endif %}
 
       }
-    }{% if not loop.last %},{% endif %}
-
+    },
 {% endfor %}
+    {
+      "tag": "direct",
+      "protocol": "freedom",
+      "settings": {}
+    }
   ],
   "routing": {
     "domainStrategy": "AsIs",
-    "rules": []
+{% if vpn_servers | length > 1 %}
+    "balancers": [
+      {
+        "tag": "vpn-balancer",
+        "selector": [
+{% for server in vpn_servers %}
+          "{{ server.name }}-v4"{% if not loop.last %},{% endif %}
+
+{% endfor %}
+        ],
+        "strategy": {
+          "type": "random"
+        }
+      }
+    ],
+{% endif %}
+    "rules": [
+{% if pac_domains is defined and pac_domains | length > 0 %}
+      {
+        "type": "field",
+        "domain": [
+{% for domain in pac_domains %}
+          "domain:{{ domain }}"{% if not loop.last %},{% endif %}
+
+{% endfor %}
+        ],
+{% if vpn_servers | length > 1 %}
+        "balancerTag": "vpn-balancer"
+{% else %}
+        "outboundTag": "{{ vpn_servers[0].name }}-v4"
+{% endif %}
+      },
+{% endif %}
+      {
+        "type": "field",
+        "network": "tcp,udp",
+        "outboundTag": "direct"
+      }
+    ]
   }
 }
