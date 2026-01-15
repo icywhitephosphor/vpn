@@ -22,10 +22,12 @@ vpn_domains_lists:
   - datadog
   - google
   - instagram
+  - jetbrains
   - linkedin
   - netflix
   - openai
   - telegram
+  - warp
   - windsurf
   - x
 
@@ -39,10 +41,12 @@ vpn_domains:
   datadog: true
   google: true
   instagram: true
+  jetbrains: true
   linkedin: true
   netflix: true
   openai: true
   telegram: false
+  warp: true
   windsurf: true
   x: true
 

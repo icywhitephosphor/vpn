@@ -17,27 +17,31 @@ vpn_domains_lists:
   - datadog
   - google
   - instagram
+  - jetbrains
   - linkedin
   - netflix
   - openai
   - telegram
+  - warp
   - windsurf
   - x
 
 vpn_services_exclude: []
 
 vpn_domains:
-  additional: false
+  additional: true
   antigravity: true
   claude: true
   copilot: true
   datadog: true
   google: true
   instagram: true
+  jetbrains: true
   linkedin: true
   netflix: true
   openai: true
   telegram: false
+  warp: true
   windsurf: true
   x: true
 

@@ -1,0 +1,158 @@
+# JetBrains - All Domains
+# Main websites, CDN, API, plugins, licenses, services
+
+# Primary Domains
+nftset=/.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/.jetbrains.ai/4#inet#fw4#vpn_domains
+nftset=/jetbrains.ai/4#inet#fw4#vpn_domains
+nftset=/.jetbrains.net/4#inet#fw4#vpn_domains
+nftset=/jetbrains.net/4#inet#fw4#vpn_domains
+nftset=/.jetbrains.org/4#inet#fw4#vpn_domains
+nftset=/jetbrains.org/4#inet#fw4#vpn_domains
+nftset=/.jetbrains.space/4#inet#fw4#vpn_domains
+nftset=/jetbrains.space/4#inet#fw4#vpn_domains
+nftset=/.jetbrains.team/4#inet#fw4#vpn_domains
+nftset=/jetbrains.team/4#inet#fw4#vpn_domains
+
+# JetBrains China
+nftset=/.jetbrains.com.cn/4#inet#fw4#vpn_domains
+nftset=/jetbrains.com.cn/4#inet#fw4#vpn_domains
+
+# Account & Licensing
+nftset=/.myjetbrains.com/4#inet#fw4#vpn_domains
+nftset=/myjetbrains.com/4#inet#fw4#vpn_domains
+nftset=/.account.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/account.jetbrains.com/4#inet#fw4#vpn_domains
+
+# Downloads & CDN
+nftset=/.download.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/download.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/.download-cdn.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/download-cdn.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/.downloads.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/downloads.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/.cache-redirector.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/cache-redirector.jetbrains.com/4#inet#fw4#vpn_domains
+
+# Plugins & Marketplace
+nftset=/.plugins.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/plugins.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/.marketplace.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/marketplace.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/.downloads.marketplace.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/downloads.marketplace.jetbrains.com/4#inet#fw4#vpn_domains
+
+# Services & API
+nftset=/.data.services.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/data.services.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/.resources.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/resources.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/.api.jetbrains.ai/4#inet#fw4#vpn_domains
+nftset=/api.jetbrains.ai/4#inet#fw4#vpn_domains
+nftset=/.www.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/www.jetbrains.com/4#inet#fw4#vpn_domains
+
+# JetBrains AI Assistant
+nftset=/.ai.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/ai.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/.grazie.ai/4#inet#fw4#vpn_domains
+nftset=/grazie.ai/4#inet#fw4#vpn_domains
+nftset=/.grazie.aws.intellij.net/4#inet#fw4#vpn_domains
+nftset=/grazie.aws.intellij.net/4#inet#fw4#vpn_domains
+
+# IntelliJ Platform
+nftset=/.intellij.net/4#inet#fw4#vpn_domains
+nftset=/intellij.net/4#inet#fw4#vpn_domains
+nftset=/.intellij.com/4#inet#fw4#vpn_domains
+nftset=/intellij.com/4#inet#fw4#vpn_domains
+nftset=/.intellij.org/4#inet#fw4#vpn_domains
+nftset=/intellij.org/4#inet#fw4#vpn_domains
+
+# Product-specific domains
+nftset=/.kotlin.com/4#inet#fw4#vpn_domains
+nftset=/kotlin.com/4#inet#fw4#vpn_domains
+nftset=/.kotlinlang.org/4#inet#fw4#vpn_domains
+nftset=/kotlinlang.org/4#inet#fw4#vpn_domains
+nftset=/.ktor.io/4#inet#fw4#vpn_domains
+nftset=/ktor.io/4#inet#fw4#vpn_domains
+nftset=/.teamcity.com/4#inet#fw4#vpn_domains
+nftset=/teamcity.com/4#inet#fw4#vpn_domains
+nftset=/.youtrack.cloud/4#inet#fw4#vpn_domains
+nftset=/youtrack.cloud/4#inet#fw4#vpn_domains
+nftset=/.youtrack.com/4#inet#fw4#vpn_domains
+nftset=/youtrack.com/4#inet#fw4#vpn_domains
+nftset=/.datalore.io/4#inet#fw4#vpn_domains
+nftset=/datalore.io/4#inet#fw4#vpn_domains
+nftset=/.datalore.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/datalore.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/.fleet.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/fleet.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/.qodana.cloud/4#inet#fw4#vpn_domains
+nftset=/qodana.cloud/4#inet#fw4#vpn_domains
+nftset=/.qodana.com/4#inet#fw4#vpn_domains
+nftset=/qodana.com/4#inet#fw4#vpn_domains
+nftset=/.toolbox.app/4#inet#fw4#vpn_domains
+nftset=/toolbox.app/4#inet#fw4#vpn_domains
+
+# Hub & User Management
+nftset=/.hub.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/hub.jetbrains.com/4#inet#fw4#vpn_domains
+
+# Documentation & Blog
+nftset=/.blog.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/blog.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/.docs.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/docs.jetbrains.com/4#inet#fw4#vpn_domains
+
+# Sales & Support
+nftset=/.sales.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/sales.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/.support.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/support.jetbrains.com/4#inet#fw4#vpn_domains
+
+# Package Repositories & Build
+nftset=/.packages.jetbrains.team/4#inet#fw4#vpn_domains
+nftset=/packages.jetbrains.team/4#inet#fw4#vpn_domains
+nftset=/.maven.pkg.jetbrains.space/4#inet#fw4#vpn_domains
+nftset=/maven.pkg.jetbrains.space/4#inet#fw4#vpn_domains
+
+# JetBrains Academy
+nftset=/.hyperskill.org/4#inet#fw4#vpn_domains
+nftset=/hyperskill.org/4#inet#fw4#vpn_domains
+nftset=/.academy.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/academy.jetbrains.com/4#inet#fw4#vpn_domains
+
+# Updates & Telemetry
+nftset=/.www-fus.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/www-fus.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/.fus.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/fus.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/.statistics.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/statistics.jetbrains.com/4#inet#fw4#vpn_domains
+
+# EAP & Snapshots
+nftset=/.eap.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/eap.jetbrains.com/4#inet#fw4#vpn_domains
+
+# JetBrains Gateway & Remote Development
+nftset=/.gateway.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/gateway.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/.code-with-me.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/code-with-me.jetbrains.com/4#inet#fw4#vpn_domains
+
+# JetBrains MPS
+nftset=/.mps.jetbrains.com/4#inet#fw4#vpn_domains
+nftset=/mps.jetbrains.com/4#inet#fw4#vpn_domains
+
+# Compose Multiplatform
+nftset=/.compose-multiplatform.org/4#inet#fw4#vpn_domains
+nftset=/compose-multiplatform.org/4#inet#fw4#vpn_domains
+
+# JetBrains Research
+nftset=/.research.jetbrains.org/4#inet#fw4#vpn_domains
+nftset=/research.jetbrains.org/4#inet#fw4#vpn_domains
+
+# JetBrains CDN on external providers
+nftset=/.jb.gg/4#inet#fw4#vpn_domains
+nftset=/jb.gg/4#inet#fw4#vpn_domains
