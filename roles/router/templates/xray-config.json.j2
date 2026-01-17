@@ -179,9 +179,9 @@
     'subjectSelector': outbounds_tags,
     'pingConfig': {
       'destination': 'https://connectivitycheck.gstatic.com/generate_204',
-      'interval': '3m',
-      'sampling': 3,
-      'timeout': '10s'
+      'interval': router_xray_observatory_interval,
+      'sampling': router_xray_observatory_sampling,
+      'timeout': router_xray_observatory_timeout
     }
   },
   'routing': {
